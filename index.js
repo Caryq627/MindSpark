@@ -22,7 +22,7 @@ const io = new Server(server, {
 });
 
 // ─── Config ───
-const TICK_RATE = 20; // Server ticks per second
+const TICK_RATE = 30; // Server ticks per second (higher = smoother)
 const WORLD = { w: 12000, h: 12000, cx: 6000, cy: 6000, radius: 5800 };
 const FOOD_COUNT = 1200;
 const BOT_COUNT = 15;
@@ -160,7 +160,7 @@ function updateBotAI(bot, dt) {
 
   // Move toward target
   const dx = ai.targetX - bot.x, dy = ai.targetY - bot.y, d = Math.hypot(dx, dy) + 1;
-  const speed = Math.max(120 / Math.sqrt(bot.mass), 40) * (bot.boosting ? 1.8 : 1);
+  const speed = Math.max(160 / Math.sqrt(bot.mass), 50) * (bot.boosting ? 1.8 : 1);
   bot.vx += (dx / d) * speed * dt; bot.vy += (dy / d) * speed * dt;
   if (bot.boostEnergy < 10) bot.boosting = false;
 }
@@ -327,7 +327,7 @@ function tick() {
     const inp = e.input;
     // Movement
     const dx = inp.mx - e.x, dy = inp.my - e.y, d = Math.hypot(dx, dy) + 1;
-    const speed = Math.max(140 / Math.sqrt(e.mass), 40) * (e.boosting && e.boostEnergy > 0 ? 1.8 : 1);
+    const speed = Math.max(180 / Math.sqrt(e.mass), 50) * (e.boosting && e.boostEnergy > 0 ? 1.8 : 1);
     if (d > 5) { e.vx += (dx / d) * speed * dt; e.vy += (dy / d) * speed * dt; }
     e.boosting = inp.boost;
     // Blast
@@ -377,7 +377,7 @@ function tick() {
     // Blast recharge
     if (e.blastShots < e.blastMaxShots) { e.blastRechargeTimer -= dt * 1000; if (e.blastRechargeTimer <= 0) { e.blastShots++; e.blastRechargeTimer = e.blastRechargeRate; } }
     // Velocity
-    e.vx *= Math.pow(.92, dt * 60); e.vy *= Math.pow(.92, dt * 60);
+    e.vx *= Math.pow(.95, dt * 60); e.vy *= Math.pow(.95, dt * 60);
     e.x += e.vx; e.y += e.vy;
     // Circular wrap
     const dxc = e.x - WORLD.cx, dyc = e.y - WORLD.cy, dc = Math.hypot(dxc, dyc);
@@ -482,7 +482,7 @@ function tick() {
     id: e.id, x: Math.round(e.x), y: Math.round(e.y),
     vx: Math.round(e.vx * 10) / 10, vy: Math.round(e.vy * 10) / 10,
     mass: Math.round(e.mass * 10) / 10, name: e.name, color: e.color,
-    alive: e.alive, isKing: e.isKing,
+    alive: e.alive, isKing: e.isKing, isBot: e.isBot,
     vortexActive: e.vortexActive, vortexTime: e.vortexTime || 0,
     boosting: e.boosting,
     attached: e.attached.map(a => ({ name: a.name, color: a.color, angle: Math.round(a.angle * 100) / 100, timer: Math.round(a.timer), maxTimer: a.maxTimer, ref: a.ref })),
