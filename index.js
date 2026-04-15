@@ -155,7 +155,7 @@ function updateBotAI(bot, dt) {
   if (bot.blastShots > 0 && Math.random() < .004 && bot.mass > 20) {
     bot.blastShots--; bot.blastRechargeTimer = bot.blastRechargeRate;
     doBlastDamage(bot);
-    events.push({ type: 'blast', x: bot.x, y: bot.y, mass: bot.mass });
+    events.push({ type: 'blast', x: bot.x, y: bot.y, mass: bot.mass, attackerId: bot.id });
   }
 
   // Move toward target
@@ -335,7 +335,7 @@ function tick() {
       e.blastShots--; e.blastRechargeTimer = e.blastRechargeRate;
       doBlastDamage(e);
       if (e.mass > START_MASS + 3) e.mass -= 2;
-      events.push({ type: 'blast', x: e.x, y: e.y, mass: e.mass });
+      events.push({ type: 'blast', x: e.x, y: e.y, mass: e.mass, attackerId: e.id });
       inp.blast = false;
     }
     // Vortex start
