@@ -22,7 +22,7 @@ const io = new Server(server, {
 });
 
 // ─── Config ───
-const TICK_RATE = 30; // Server ticks per second (higher = smoother)
+const TICK_RATE = 20; // Server ticks per second — lower = less bandwidth, client interpolates
 const WORLD = { w: 12000, h: 12000, cx: 6000, cy: 6000, radius: 5800 };
 const FOOD_COUNT = 1200;
 const BOT_COUNT = 15;
@@ -160,7 +160,7 @@ function updateBotAI(bot, dt) {
 
   // Move toward target
   const dx = ai.targetX - bot.x, dy = ai.targetY - bot.y, d = Math.hypot(dx, dy) + 1;
-  const speed = Math.max(125 / Math.sqrt(bot.mass), 35) * (bot.boosting ? 1.8 : 1);
+  const speed = Math.max(65 / Math.sqrt(bot.mass), 20) * (bot.boosting ? 1.8 : 1);
   bot.vx += (dx / d) * speed * dt; bot.vy += (dy / d) * speed * dt;
   if (bot.boostEnergy < 10) bot.boosting = false;
 }
@@ -327,7 +327,7 @@ function tick() {
     const inp = e.input;
     // Movement
     const dx = inp.mx - e.x, dy = inp.my - e.y, d = Math.hypot(dx, dy) + 1;
-    const speed = Math.max(150 / Math.sqrt(e.mass), 40) * (e.boosting && e.boostEnergy > 0 ? 1.8 : 1);
+    const speed = Math.max(75 / Math.sqrt(e.mass), 22) * (e.boosting && e.boostEnergy > 0 ? 1.8 : 1);
     if (d > 5) { e.vx += (dx / d) * speed * dt; e.vy += (dy / d) * speed * dt; }
     e.boosting = inp.boost;
     // Blast
@@ -377,7 +377,7 @@ function tick() {
     // Blast recharge
     if (e.blastShots < e.blastMaxShots) { e.blastRechargeTimer -= dt * 1000; if (e.blastRechargeTimer <= 0) { e.blastShots++; e.blastRechargeTimer = e.blastRechargeRate; } }
     // Velocity
-    e.vx *= Math.pow(.88, dt * 60); e.vy *= Math.pow(.88, dt * 60);
+    e.vx *= Math.pow(.9, dt * 60); e.vy *= Math.pow(.9, dt * 60);
     e.x += e.vx; e.y += e.vy;
     // Circular wrap
     const dxc = e.x - WORLD.cx, dyc = e.y - WORLD.cy, dc = Math.hypot(dxc, dyc);
@@ -477,27 +477,28 @@ function tick() {
   });
 
   // ─── Broadcast State ───
-  // Build compact state
+  // Build minimal state — only what client needs to render
   const entityList = Object.values(entities).map(e => ({
     id: e.id, x: Math.round(e.x), y: Math.round(e.y),
-    vx: Math.round(e.vx * 10) / 10, vy: Math.round(e.vy * 10) / 10,
-    mass: Math.round(e.mass * 10) / 10, name: e.name, color: e.color,
+    mass: Math.round(e.mass), name: e.name, color: e.color,
     alive: e.alive, isKing: e.isKing, isBot: e.isBot,
     vortexActive: e.vortexActive, vortexTime: e.vortexTime || 0,
     boosting: e.boosting,
     attached: e.attached.map(a => ({ name: a.name, color: a.color, angle: Math.round(a.angle * 100) / 100, timer: Math.round(a.timer), maxTimer: a.maxTimer, ref: a.ref })),
     attachedTo: e.attachedTo ? e.attachedTo.id : null,
     blastShots: e.blastShots, boostEnergy: Math.round(e.boostEnergy),
-    dislodgeCharge: Math.round(e.dislodgeCharge), dislodgeCooldown: Math.round(e.dislodgeCooldown),
-    glowPhase: Math.round(e.glowPhase * 100) / 100, diskPhase: Math.round(e.diskPhase * 100) / 100,
+    dislodgeCharge: Math.round(e.dislodgeCharge || 0), dislodgeCooldown: Math.round(e.dislodgeCooldown || 0),
   }));
 
-  // Send nearby food only (within 2000px of each player) to save bandwidth
+  // Send food only every 3rd tick and only nearby — food is cosmetic, doesn't need to be precise
+  const sendFood = (gameTick % 3 === 0);
   const connectedSockets = Object.values(entities).filter(e => e.socketId && e.alive);
   connectedSockets.forEach(p => {
-    const nearFood = food.filter(f => Math.abs(f.x - p.x) < 2000 && Math.abs(f.y - p.y) < 2000)
-      .map(f => ({ x: Math.round(f.x), y: Math.round(f.y), mass: Math.round(f.mass * 10) / 10, hue: Math.round(f.hue), pulse: Math.round(f.pulse * 100) / 100 }));
-    io.to(p.socketId).emit('state', { entities: entityList, food: nearFood, events, tick: gameTick, you: p.id });
+    const nearFood = sendFood ? food.filter(f => Math.abs(f.x - p.x) < 1500 && Math.abs(f.y - p.y) < 1500)
+      .map(f => ({ x: Math.round(f.x), y: Math.round(f.y), hue: Math.round(f.hue) })) : undefined;
+    const packet = { entities: entityList, events, tick: gameTick, you: p.id };
+    if (nearFood) packet.food = nearFood;
+    io.to(p.socketId).emit('state', packet);
   });
 
   // Also broadcast to spectators (dead players)
