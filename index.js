@@ -529,6 +529,9 @@ io.on('connection', (socket) => {
     if (!entity || !entity.alive) return;
     if (data.mx !== undefined) entity.input.mx = data.mx;
     if (data.my !== undefined) entity.input.my = data.my;
+    // Accept client's actual position for relay to other players
+    if (data.px !== undefined) { entity.x = data.px; entity.y = data.py; }
+    if (data.mass !== undefined) entity.mass = data.mass;
     if (data.blast) entity.input.blast = true;
     if (data.vortexStart) entity.input.vortexStart = true;
     if (data.vortexEnd) entity.input.vortexEnd = true;
