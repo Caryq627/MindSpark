@@ -160,7 +160,7 @@ function updateBotAI(bot, dt) {
 
   // Move toward target
   const dx = ai.targetX - bot.x, dy = ai.targetY - bot.y, d = Math.hypot(dx, dy) + 1;
-  const speed = Math.max(2200 / Math.sqrt(bot.mass), 500) * (bot.boosting ? 2.5 : 1);
+  const speed = Math.max(1000 / Math.sqrt(bot.mass), 250) * (bot.boosting ? 2.2 : 1);
   bot.vx += (dx / d) * speed * dt; bot.vy += (dy / d) * speed * dt;
   if (bot.boostEnergy < 10) bot.boosting = false;
 }
@@ -327,8 +327,8 @@ function tick() {
     const inp = e.input;
     // Movement
     const dx = inp.mx - e.x, dy = inp.my - e.y, d = Math.hypot(dx, dy) + 1;
-    const speed = Math.max(2500 / Math.sqrt(e.mass), 600) * (e.boosting && e.boostEnergy > 0 ? 2.5 : 1);
-    if (d > 3) { e.vx += (dx / d) * speed * dt; e.vy += (dy / d) * speed * dt; }
+    const speed = Math.max(1200 / Math.sqrt(e.mass), 300) * (e.boosting && e.boostEnergy > 0 ? 2.2 : 1);
+    if (d > 5) { e.vx += (dx / d) * speed * dt; e.vy += (dy / d) * speed * dt; }
     e.boosting = inp.boost;
     // Blast
     if (inp.blast && e.blastShots > 0) {
@@ -377,7 +377,7 @@ function tick() {
     // Blast recharge
     if (e.blastShots < e.blastMaxShots) { e.blastRechargeTimer -= dt * 1000; if (e.blastRechargeTimer <= 0) { e.blastShots++; e.blastRechargeTimer = e.blastRechargeRate; } }
     // Velocity
-    e.vx *= Math.pow(.99, dt * 60); e.vy *= Math.pow(.99, dt * 60);
+    e.vx *= Math.pow(.94, dt * 60); e.vy *= Math.pow(.94, dt * 60);
     e.x += e.vx; e.y += e.vy;
     // Circular wrap
     const dxc = e.x - WORLD.cx, dyc = e.y - WORLD.cy, dc = Math.hypot(dxc, dyc);
