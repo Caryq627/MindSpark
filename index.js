@@ -160,7 +160,7 @@ function updateBotAI(bot, dt) {
 
   // Move toward target
   const dx = ai.targetX - bot.x, dy = ai.targetY - bot.y, d = Math.hypot(dx, dy) + 1;
-  const speed = Math.max(160 / Math.sqrt(bot.mass), 50) * (bot.boosting ? 1.8 : 1);
+  const speed = Math.max(1500 / Math.sqrt(bot.mass), 350) * (bot.boosting ? 2.5 : 1);
   bot.vx += (dx / d) * speed * dt; bot.vy += (dy / d) * speed * dt;
   if (bot.boostEnergy < 10) bot.boosting = false;
 }
@@ -176,7 +176,7 @@ function doBlastDamage(attacker) {
     if (d < pushR) {
       p.mass = Math.max(5, p.mass * .5);
       const dx = p.x - attacker.x, dy = p.y - attacker.y, dd = Math.hypot(dx, dy) + 1;
-      p.vx += (dx / dd) * 15; p.vy += (dy / dd) * 15;
+      p.vx += (dx / dd) * 35; p.vy += (dy / dd) * 35;
       events.push({ type: 'hit', x: p.x, y: p.y, id: p.id });
       if (p.mass <= 5) killEntity(attacker, p);
     }
@@ -327,7 +327,7 @@ function tick() {
     const inp = e.input;
     // Movement
     const dx = inp.mx - e.x, dy = inp.my - e.y, d = Math.hypot(dx, dy) + 1;
-    const speed = Math.max(180 / Math.sqrt(e.mass), 50) * (e.boosting && e.boostEnergy > 0 ? 1.8 : 1);
+    const speed = Math.max(1800 / Math.sqrt(e.mass), 400) * (e.boosting && e.boostEnergy > 0 ? 2.5 : 1);
     if (d > 5) { e.vx += (dx / d) * speed * dt; e.vy += (dy / d) * speed * dt; }
     e.boosting = inp.boost;
     // Blast
@@ -377,7 +377,7 @@ function tick() {
     // Blast recharge
     if (e.blastShots < e.blastMaxShots) { e.blastRechargeTimer -= dt * 1000; if (e.blastRechargeTimer <= 0) { e.blastShots++; e.blastRechargeTimer = e.blastRechargeRate; } }
     // Velocity
-    e.vx *= Math.pow(.95, dt * 60); e.vy *= Math.pow(.95, dt * 60);
+    e.vx *= Math.pow(.985, dt * 60); e.vy *= Math.pow(.985, dt * 60);
     e.x += e.vx; e.y += e.vy;
     // Circular wrap
     const dxc = e.x - WORLD.cx, dyc = e.y - WORLD.cy, dc = Math.hypot(dxc, dyc);
@@ -393,14 +393,14 @@ function tick() {
       const f = food[fi];
       const d = dist(e, f);
       if (d < r + 8) { e.mass += f.mass * .5; food.splice(fi, 1); continue; }
-      if (d < r * 5 + 50) { const force = (e.mass * .0003) / (d * .01 + 1); const fdx = e.x - f.x, fdy = e.y - f.y, fdd = Math.hypot(fdx, fdy) + 1; f.x += fdx / fdd * force; f.y += fdy / fdd * force; }
+      if (d < r * 6 + 80) { const force = (e.mass * .001) / (d * .008 + 1); const fdx = e.x - f.x, fdy = e.y - f.y, fdd = Math.hypot(fdx, fdy) + 1; f.x += fdx / fdd * force; f.y += fdy / fdd * force; }
     }
     // Vortex pull
     if (e.vortexActive) {
       e.vortexTime += dt * 1000;
       const intensity = Math.min(e.vortexTime / 3000, 1);
       const suckR = 100 + intensity * 200 + e.vortexAbsorbed * 5 + r;
-      food.forEach(f => { const d = dist(e, f); if (d < suckR) { const force = (1 - d / suckR) * (3 + intensity * 10); const fdx = e.x - f.x, fdy = e.y - f.y, fdd = Math.hypot(fdx, fdy) + 1; f.x += fdx / fdd * force; f.y += fdy / fdd * force; } });
+      food.forEach(f => { const d = dist(e, f); if (d < suckR) { const force = (1 - d / suckR) * (8 + intensity * 25); const fdx = e.x - f.x, fdy = e.y - f.y, fdd = Math.hypot(fdx, fdy) + 1; f.x += fdx / fdd * force; f.y += fdy / fdd * force; } });
       allE.forEach(p => {
         if (p === e || !p.alive || p.attachedTo) return;
         if (p.mass < e.mass * .8) { const d = dist(e, p); if (d < suckR * .6) { const force = (1 - d / (suckR * .6)) * (2 + intensity * 5); p.vx += (e.x - p.x) / (d + 1) * force * .3; p.vy += (e.y - p.y) / (d + 1) * force * .3; } }
