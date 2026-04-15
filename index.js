@@ -538,12 +538,10 @@ io.on('connection', (socket) => {
 
   socket.on('respawn', () => {
     const entity = Object.values(entities).find(e => e.socketId === socket.id);
-    if (entity && !entity.alive && entity.respawnsLeft > 0) {
-      entity.respawnsLeft--;
+    if (entity) {
       delete entities[entity.id];
       const newE = createEntity(entity.name, entity._origColor || '#00f0ff', socket.id);
       newE._origColor = entity._origColor;
-      newE.respawnsLeft = 0;
       socket.emit('joined', { id: newE.id, world: WORLD, capturesWin: CAPTURES_TO_WIN });
     }
   });
