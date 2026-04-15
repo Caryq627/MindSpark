@@ -160,7 +160,7 @@ function updateBotAI(bot, dt) {
 
   // Move toward target
   const dx = ai.targetX - bot.x, dy = ai.targetY - bot.y, d = Math.hypot(dx, dy) + 1;
-  const speed = Math.max(500 / Math.sqrt(bot.mass), 130) * (bot.boosting ? 1.8 : 1);
+  const speed = Math.max(125 / Math.sqrt(bot.mass), 35) * (bot.boosting ? 1.8 : 1);
   bot.vx += (dx / d) * speed * dt; bot.vy += (dy / d) * speed * dt;
   if (bot.boostEnergy < 10) bot.boosting = false;
 }
@@ -327,7 +327,7 @@ function tick() {
     const inp = e.input;
     // Movement
     const dx = inp.mx - e.x, dy = inp.my - e.y, d = Math.hypot(dx, dy) + 1;
-    const speed = Math.max(600 / Math.sqrt(e.mass), 150) * (e.boosting && e.boostEnergy > 0 ? 1.8 : 1);
+    const speed = Math.max(150 / Math.sqrt(e.mass), 40) * (e.boosting && e.boostEnergy > 0 ? 1.8 : 1);
     if (d > 5) { e.vx += (dx / d) * speed * dt; e.vy += (dy / d) * speed * dt; }
     e.boosting = inp.boost;
     // Blast
